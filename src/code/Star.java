@@ -1,59 +1,79 @@
 package code;
 
+//TODO: The Environment class uses a constructor for windSpeed. Thus, the windSpeed should be passed into this star.
 public class Star implements ODESystem
 {
 	//Star constants
 	public static final double DRAG_COEFFICIENT = 0.4; //no units
 	public static final double BURN_RATE = 0.0030; //kg/sec
-	public static final double STARTING_MASS = 0.008; //kg
+	public static final double DEFAULT_MASS = 0.008; //kg
 	public static final double STAR_DENSITY = 1900; //kg/m^3
 	
 	//Constants for instantiated objects
 	private double STAR_MASS; //kg
+	private double BURN_TIME; //seconds
 	
 	//Current positions
-	private double X, Y;
-	private double VX, VY;
-	 
-	/* Various constructors */
-	public Star()
+	private double[] positions = new double[2];
+	private double[] velocities = new double[2]; //m/sec
+	private double WIND_SPEED; //m/sec
+	
+	public Star(double[] initialPositions, double[] initialVelocities, double initialMass, Environment env) throws IllegalArgumentException
 	{
-		new Star(0,0,0,0,STARTING_MASS);
+		setMass(initialMass);
+		setPosition(initialPositions);
+		setVelocity(initialVelocities);
+		
+		this.WIND_SPEED = env.getWindSpeed();
+		this.BURN_TIME = STAR_MASS / BURN_RATE;
 	}
 	
-	public Star(double initialX, double initialY)
+	/* Methods to set values */
+	
+	private void setMass(double mass) throws IllegalArgumentException
 	{
-		new Star(initialX, initialY, 0,0,STARTING_MASS);
+		if(mass < 0)
+			throw new IllegalArgumentException("Star mass must be positive.");
+		this.STAR_MASS = mass;
+	}
+	private void setVelocity(double[] velocities) throws IllegalArgumentException
+	{
+		if(velocities == null)
+			throw new IllegalArgumentException("Inputted velocity array is null.");
+		if(velocities.length != 2)
+			throw new IllegalArgumentException("Inputted velocity array must be 2D.");
+		this.velocities = velocities.clone();
 	}
 	
-	public Star(double initialX, double initialY, double initialVX, double initialVY)
+	private void setPosition(double[] positions) throws IllegalArgumentException
 	{
-		new Star(initialX, initialY, initialVX, initialVY, STARTING_MASS);
+		if(positions == null)
+			throw new IllegalArgumentException("Inputted position array is null.");
+		if(positions.length != 2)
+			throw new IllegalArgumentException("Inputted position array must be 2D.");
+		this.positions = positions.clone();
 	}
 	
-	public Star(double initialX, double initialY, double mass)
+	/* Update the velocities */
+	public void updateStar(double time, double deltaT)
 	{
-		new Star(initialX, initialY, 0, 0, mass);
+		double[] velocityChange = RungeKuttaSolver.rungeKutta(this, time, deltaT);
+		for(int i = 0; i < getSystemSize(); i++)
+		{
+			velocities[i] = velocityChange[i] + velocities[i];
+			positions[i] = positions[i] + velocities[i] * deltaT;
+		}
 	}
 	
-	public Star(double initialX, double initialY, double initialVX, double initialVY, double initialMass)
+	/* Used to calculate star path */
+	public double getBurnTime()
 	{
-		setPosition(initialX, initialY);
-		setVelocity(initialVX, initialVY);
-		this.STAR_MASS = initialMass;
+		return BURN_TIME;
 	}
 	
-	/* Methods to set location values */
-	public void setVelocity(double vX, double vY)
+	public double[] getPositions()
 	{
-		this.VX = vX;
-		this.VY = vY;
-	}
-	
-	public void setPosition(double x, double y)
-	{
-		this.X = x;
-		this.Y = y;
+		return positions.clone();
 	}
 	
 	/* Methods relating to the ODESystem interface*/
@@ -63,15 +83,10 @@ public class Star implements ODESystem
 	}
 	
 	//returns the current velocities of the star in an array [x,y]
+	// TODO: The environment windSpeed is not static - this needs to be changed.
 	public double[] getCurrentValues()
 	{
-		double[] velocities = {VX, VY};
-		return velocities;
-	}
-	
-	public double[] getApparentValues()
-	{
-		double[] apparentVelocities = {VX - Environment.WIND_SPEED, VY};
+		double[] apparentVelocities = {velocities[0] - WIND_SPEED, velocities[1]};
 		return apparentVelocities;
 	}
 	
@@ -95,20 +110,16 @@ public class Star implements ODESystem
 		return -drag * vxa / (mass * velocity);
 	}
 		
+	//Gravity is not necessarily constant, as it could be part of a different environment variable. This should be changed.
 	private double yDE(double time, double vxa, double vy)
 	{
 		double velocity = getVelocity(vxa, vy);
 		double mass = getMass(time);
 		double dragForce = getDragForce(time, vxa, vy);
-		return -Environment.G - dragForce * vy / (mass * velocity);
+		return -Environment.getGravity() - dragForce * vy / (mass * velocity);
 	}
 	
 	/* Methods to retrieve Star values */
-	public double[] getPosition()
-	{
-		double[] positions = {X, Y};
-		return positions;
-	}
 	
 	private double getVelocity(double vx, double vy)
 	{
@@ -134,10 +145,11 @@ public class Star implements ODESystem
 		return Math.PI * radius * radius;
 	}
 	
-	private double getDragForce(double time, double apparentXSpeed, double apparentYSpeed)
+	//TODO: The environment air density is not necessarily static or constant. This should be changed.
+	private double getDragForce(double time, double vxa, double vya)
 	{
 		double area = getArea(time);
-		double velocity = getVelocity(apparentXSpeed, apparentYSpeed);
-		return Environment.AIR_DENSITY * DRAG_COEFFICIENT * area * velocity * velocity * 0.5;
+		double velocity = getVelocity(vxa, vya);
+		return Environment.getAirDensity() * DRAG_COEFFICIENT * area * velocity * velocity * 0.5;
 	}
 }
