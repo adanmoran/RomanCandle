@@ -11,6 +11,7 @@ import code.Environment;
 import code.IllegalAngleException;
 import code.IllegalWindSpeedException;
 import code.LaunchTube;
+import code.Star;
 
 public class LaunchTubeTest {
 
@@ -42,9 +43,11 @@ public class LaunchTubeTest {
 	}
 
 	@Test
-	public void testGenerateStar() throws IllegalWindSpeedException {
+	public void testGenerateStar() throws IllegalWindSpeedException, IllegalAngleException {
 		Environment env = new Environment(0);
-		fail("Not yet implemented"); // TODO
+		LaunchTube a = new LaunchTube(10);
+		Star star = a.generateStar(env);
+		assertNotNull(star);
 	}
 
 }

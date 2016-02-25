@@ -1,6 +1,10 @@
 package code;
 
-//TODO: The Environment class uses a constructor for windSpeed. Thus, the windSpeed should be passed into this star.
+/**
+ * 
+ * @author Adan Moran-MacDonald <12amm19 @ queensu.ca>
+ * @since 24-02-2016
+ */
 public class Star implements ODESystem
 {
 	//Star constants
@@ -18,7 +22,14 @@ public class Star implements ODESystem
 	private double[] velocities = new double[2]; //m/sec
 	private double WIND_SPEED; //m/sec
 	
-	public Star(double[] initialPositions, double[] initialVelocities, double initialMass, Environment env) throws IllegalArgumentException
+	/**
+	 * 
+	 * @param initialPositions a 2-dimensional array consisting of the horizontal and vertical positions (in m).
+	 * @param initialVelocities a 2-dimensional array consisting of the horizontal and vertical velocities (in m/s).
+	 * @param initialMass a positive, non-zero mass (in kg).
+	 * @param env an Environment object with a valid wind speed parameter (in m/s).
+	 */
+	public Star(double[] initialPositions, double[] initialVelocities, double initialMass, Environment env)
 	{
 		setMass(initialMass);
 		setPosition(initialPositions);
@@ -29,7 +40,6 @@ public class Star implements ODESystem
 	}
 	
 	/* Methods to set values */
-	
 	private void setMass(double mass) throws IllegalArgumentException
 	{
 		if(mass < 0)
@@ -54,7 +64,12 @@ public class Star implements ODESystem
 		this.positions = positions.clone();
 	}
 	
-	/* Update the velocities */
+	/**
+	 * Update the velocity and position of the star by using the Runge-Kutta numerical integrator.
+	 * 
+	 * @param time the time value associated with this Star's position
+	 * @param deltaT the interval of the time step
+	 */
 	public void updateStar(double time, double deltaT)
 	{
 		double[] velocityChange = RungeKuttaSolver.rungeKutta(this, time, deltaT);
@@ -64,34 +79,55 @@ public class Star implements ODESystem
 			positions[i] = positions[i] + velocities[i] * deltaT;
 		}
 	}
-	
-	/* Used to calculate star path */
+
+	/**
+	 * @return the time it takes the star to reach zero mass (in seconds).
+	 */
 	public double getBurnTime()
 	{
 		return BURN_TIME;
 	}
 	
+	/**
+	 * 
+	 * @return the 2-dimensional array containing the X and Y position of the star.
+	 */
 	public double[] getPositions()
 	{
 		return positions.clone();
 	}
 	
-	/* Methods relating to the ODESystem interface*/
+	/**
+	 * @see ODESystem.getSystemSize()
+	 * 
+	 * @return the size of the position and velocity arrays of this object.
+	 */
 	public int getSystemSize()
 	{
 		return 2;
 	}
 	
-	//returns the current velocities of the star in an array [x,y]
-	// TODO: The environment windSpeed is not static - this needs to be changed.
+	/**
+	 * 
+	 * @see ODESystem.getCurrentValues()
+	 * 
+	 * @return the array containing the apparent velocities of the star, taking into account wind speed (in m/s).
+	 */
 	public double[] getCurrentValues()
 	{
 		double[] apparentVelocities = {velocities[0] - WIND_SPEED, velocities[1]};
 		return apparentVelocities;
 	}
 	
-	//Returns the values of the differential equations fx and fy, which depend on the parameters "time" and "values"
-	//This will be used by the RungeKuttaSolver
+	/**
+	 * 
+	 * @see ODESystem.getCurrentValues()
+	 * 
+	 * @param time the current time
+	 * @param values an array containing the apparent velocities of the star, taking into account wind speed (in m/s).
+	 * 
+	 * @return the value of the differential equation with respect to velocity
+	 */
 	public double[] getFunction(double time, double[] values)
 	{
 		//Apparent speed was passed into this function
@@ -102,6 +138,7 @@ public class Star implements ODESystem
 		return retVals;
 	}
 	
+	/* This is the x-component of the ODE */
 	private double xDE(double time, double vxa, double vy)
 	{
 		double mass = getMass(time);
@@ -110,27 +147,28 @@ public class Star implements ODESystem
 		return -drag * vxa / (mass * velocity);
 	}
 		
-	//Gravity is not necessarily constant, as it could be part of a different environment variable. This should be changed.
+	/* This is the y-component of the ODE */
 	private double yDE(double time, double vxa, double vy)
 	{
 		double velocity = getVelocity(vxa, vy);
 		double mass = getMass(time);
 		double dragForce = getDragForce(time, vxa, vy);
-		return -Environment.getGravity() - dragForce * vy / (mass * velocity);
+		return -Environment.GRAVITY - dragForce * vy / (mass * velocity);
 	}
 	
-	/* Methods to retrieve Star values */
-	
+	/* Methods to retrieve Star values for use in ODE equations */
 	private double getVelocity(double vx, double vy)
 	{
 		return Math.sqrt(vx*vx + vy*vy);
 	}
 	
+	/* Get the mass at a certain time */
 	private double getMass(double time)
 	{
 		return STAR_MASS - BURN_RATE * time;
 	}
 	
+	/* Get the radius at a certain time */
 	private double getRadius(double time)
 	{
 		//Volume is linearly related to mass
@@ -139,17 +177,18 @@ public class Star implements ODESystem
 		return Math.pow(3.0 * volume / (4.0 * Math.PI), 1.0/3.0);
 	}
 	
+	/* Get the area at a certain time */
 	private double getArea(double time)
 	{
 		double radius = getRadius(time);
 		return Math.PI * radius * radius;
 	}
 	
-	//TODO: The environment air density is not necessarily static or constant. This should be changed.
+	/* Get the drag force for the current time step */
 	private double getDragForce(double time, double vxa, double vya)
 	{
 		double area = getArea(time);
 		double velocity = getVelocity(vxa, vya);
-		return Environment.getAirDensity() * DRAG_COEFFICIENT * area * velocity * velocity * 0.5;
+		return Environment.AIR_DENSITY * DRAG_COEFFICIENT * area * velocity * velocity * 0.5;
 	}
 }

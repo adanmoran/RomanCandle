@@ -40,21 +40,6 @@ public class EnvironmentTest {
 	}
 
 	@Test
-	public void testGetGravity() {
-		assertEquals(9.807, Environment.getGravity(), 0.001);
-		assertNotEquals(9.81, Environment.getGravity(), 0.001);
-	}
-
-	@Test
-	public void testGetAirDensity() throws IllegalWindSpeedException {
-		assertEquals(1.2, Environment.getAirDensity(), 0.001);
-		assertNotEquals(1.202, Environment.getAirDensity(), 0.001);
-		Environment env = new Environment(10);
-		assertEquals(1.2, env.getAirDensity(), 0.001);
-		assertNotEquals(1.202, env.getAirDensity(), 0.001);
-	}
-
-	@Test
 	public void testGetWindSpeed() throws IllegalWindSpeedException {
 		Environment env = new Environment(-10);
 		assertEquals(-10, env.getWindSpeed()*3.6, 0.00001);

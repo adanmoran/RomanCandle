@@ -1,7 +1,30 @@
 package code;
 
+/**
+ * 
+ * @author Adan Moran-MacDonald <12amm19 @ queensu.ca>
+ * @since 24-02-2016
+ *
+ */
 public class RungeKuttaSolver 
 {
+	/**
+	 * <p>
+	 * The Runge-Kutta Q4 Numerical Integrator.
+	 * 
+	 * This integrator calculates the next value of an ODESystem object, based on a 
+	 * given time and time-step.
+	 * 
+	 * The given time should be one time-step more than the previous value of the
+	 * ODESystem object.
+	 * </p>
+	 * 
+	 * @param ode an ODESystem object to be integrated.
+	 * @param time the current time value (in seconds).
+	 * @param deltaT the time step over which to integrate.
+	 * 
+	 * @return the next values of the ODESystem.
+	 */
 	public static double[] rungeKutta(ODESystem ode, double time, double deltaT)
 	{
 		int size = ode.getSystemSize();
