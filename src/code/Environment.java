@@ -1,41 +1,48 @@
 package code;
-
 /**
- * 
- * @author Adan Moran-MacDonald <12amm19 @ queensu.ca>
- * @since 24-02-2016
- *
+ * Contains all the information about the environment in which the Roman Candle is being fired.
+ * This consists of the wind velocity, the air density and gravity constants.
+ * @author Alan McLeod
+ * @version 1.0
  */
-public class Environment
-{
-	public static final double MAX_WIND_SPEED = 20; //km/h
-	public static final double GRAVITY = 9.807;
-	public static final double AIR_DENSITY = 1.2;
-	private double windSpeed;
+public class Environment {
+
+	private double windVelocity;					// m/sec
+	/**
+	 * Air density in kg per cubic metre at close to sea level.
+	 */
+	public final static double DENSITY_AIR = 1.2;	// kg/m^3
+	/**
+	 * The acceleration due to Earth's gravity in metres per second squared.
+	 */
+	public final static double G = 9.807;  			// m/s^2
 	
 	/**
-	 * Create an earth environment with horizontal wind, where wind is positive in the x-axis.
-	 * @param windSpeed a wind speed between -MAX_WIND_SPEED and MAX_WIND_SPEED (in m/s).
-	 * @throws IllegalWindSpeedException
+	 * The constructor for the Environment object.
+	 * @param wind The wind velocity in km/hour.
+	 * @throws EnvironmentException If the magnitude of the wind velocity is above 20 km/hour.
 	 */
-	public Environment(double windSpeed) throws IllegalWindSpeedException
-	{
-		setWindSpeed(windSpeed);
-	}
-	
-	private void setWindSpeed(double windSpeed) throws IllegalWindSpeedException
-	{
-		if(windSpeed < -MAX_WIND_SPEED || windSpeed > MAX_WIND_SPEED)
-			throw new IllegalWindSpeedException("Wind Speed must be between -20 and 20 km/h");
-		//Convert to m/s
-		this.windSpeed = windSpeed * 1 / 3.6; 
-	}
+	public Environment(double wind) throws EnvironmentException {
+		if (wind < -20 || wind > 20)
+			throw new EnvironmentException("Wind too high: " + wind);
+		windVelocity = wind / 3.6;
+	} // end Constructor
 	
 	/**
-	 * @return the wind speed of this environment (in m/s).
+	 * Changes the wind velocity.  It is assumed that the wind only blows along
+	 * the x axis.
+	 * @param wind Wind velocity magnitude in km/hr.
 	 */
-	public double getWindSpeed()
-	{
-		return windSpeed;
-	}
-}
+	public void setWindVelocity(double wind) {
+		windVelocity = wind / 3.6;
+	} // end setWindVelocity
+	
+	/**
+	 * The wind velocity accessor.
+	 * @return The wind velocity in m/sec.
+	 */
+	public double getWindVelocity() {
+		return windVelocity;
+	} // end getWindVelocity
+	
+} // end Environment
